@@ -1,0 +1,16 @@
+{
+  "hospitales": {
+    "source": "calibrated",
+    "description": "Indice de presion calibrado con patrones epidemiologicos documentados (Central de Resultats, Min. Sanidad) aplicados sobre clima REAL (Open-Meteo), festivos REALES (Nager.Date) y eventos REALES (Open Data BCN).",
+    "features_source": "100% datos reales",
+    "target_source": "calibrado con literatura + datos oficiales agregados",
+    "limitation": "El target no es un conteo medido de urgencias. Es un indice calibrado. Para prediccion de conteos reales, se necesita acceso a datos diarios de CatSalut (CMBD-UR) o datos internos del hospital."
+  },
+  "transporte": {
+    "source": "rules_based",
+    "description": "Prediccion basada en reglas documentadas + alertas en tiempo real de TMB y Renfe. Features de entrada 100% reales.",
+    "features_source": "100% datos reales",
+    "target_source": "reglas con pesos documentados, no ML",
+    "limitation": "No hay datos publicos de validaciones diarias de TMB ni Renfe. La prediccion se basa en patrones documentados y alertas reales. Para ML supervisado, se necesitan datos de ridership diario."
+  }
+}

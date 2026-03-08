@@ -1,0 +1,7 @@
+{
+  "fuente": "TMB Portal de Transparencia - Datos oficiales 2024",
+  "url": "https://transparencia.tmb.cat/es/servicios-publicos/cartas-y-catalogo-servicios/catalogo-servicios-prestados/datos-basicos-y-demanda",
+  "tipo_datos": "Pasajeros reales validados por estacion y linea",
+  "granularidad": "Mensual (totales) y media diaria laborable por mes",
+  "limitacion": "NO hay datos horarios (solo totales diarios). NO hay datos de fines de semana separados."
+}

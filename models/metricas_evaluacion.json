@@ -1,0 +1,119 @@
+[
+  {
+    "service": "hospitales",
+    "model_type": "Prophet",
+    "data_source": "calibrated",
+    "regressors": [
+      "frio_extremo",
+      "frio_moderado",
+      "calor_extremo",
+      "ola_calor",
+      "lluvia_alta",
+      "lluvia_moderada",
+      "es_post_festivo",
+      "es_vispera",
+      "es_puente",
+      "temporada_gripe",
+      "temporada_calor",
+      "semana_gripe_alta",
+      "amplitud_termica",
+      "n_eventos_dia",
+      "evento_masivo",
+      "partido_barca_casa"
+    ],
+    "total_days": 2983,
+    "holdout_metrics": {
+      "mae": 2.6,
+      "rmse": 3.23,
+      "smape_pct": 4.83,
+      "mape_nonzero_pct": 4.86,
+      "coverage_80_pct": 79.7
+    },
+    "cv_folds": [
+      {
+        "mae": 6.32,
+        "rmse": 7.51,
+        "smape_pct": 9.72,
+        "mape_nonzero_pct": 9.14,
+        "coverage_80_pct": 30.0,
+        "fold": 1,
+        "train_days": 365,
+        "test_days": 90,
+        "test_range": "2019-01-01 -> 2019-03-31"
+      },
+      {
+        "mae": 2.6,
+        "rmse": 3.27,
+        "smape_pct": 4.81,
+        "mape_nonzero_pct": 4.8,
+        "coverage_80_pct": 75.6,
+        "fold": 2,
+        "train_days": 997,
+        "test_days": 90,
+        "test_range": "2020-09-24 -> 2020-12-22"
+      },
+      {
+        "mae": 2.37,
+        "rmse": 2.94,
+        "smape_pct": 5.14,
+        "mape_nonzero_pct": 5.11,
+        "coverage_80_pct": 88.9,
+        "fold": 3,
+        "train_days": 1629,
+        "test_days": 90,
+        "test_range": "2022-06-18 -> 2022-09-15"
+      },
+      {
+        "mae": 2.48,
+        "rmse": 2.96,
+        "smape_pct": 5.04,
+        "mape_nonzero_pct": 5.0,
+        "coverage_80_pct": 85.6,
+        "fold": 4,
+        "train_days": 2261,
+        "test_days": 90,
+        "test_range": "2024-03-11 -> 2024-06-08"
+      },
+      {
+        "mae": 9.45,
+        "rmse": 12.57,
+        "smape_pct": 15.97,
+        "mape_nonzero_pct": 13.93,
+        "coverage_80_pct": 37.8,
+        "fold": 5,
+        "train_days": 2893,
+        "test_days": 90,
+        "test_range": "2025-12-03 -> 2026-03-02"
+      }
+    ],
+    "cv_avg": {
+      "smape_pct": 8.14,
+      "mae": 4.64,
+      "coverage_80_pct": 63.6
+    },
+    "residual_analysis": {
+      "mean": -0.03,
+      "std": 3.23,
+      "skewness": 0.054,
+      "p90_error": 5.3
+    }
+  },
+  {
+    "service": "metro",
+    "model_type": "rules_based",
+    "data_source": "no_data",
+    "note": "Sin datos reales de validaciones TMB. Prediccion por reglas documentadas + alertas en tiempo real."
+  },
+  {
+    "service": "bus",
+    "model_type": "rules_based",
+    "data_source": "no_data",
+    "note": "Sin datos reales de validaciones TMB. Prediccion por reglas documentadas + alertas en tiempo real."
+  },
+  {
+    "service": "rodalies",
+    "model_type": "rules_based",
+    "data_source": "aggregate_2018",
+    "note": "Datos agregados Renfe 2018 (por franja, no diarios). Prediccion por reglas + alertas en tiempo real."
+  }
+]

@@ -1,0 +1,257 @@
+[
+  {
+    "service": "hospitales",
+    "metrics": {
+      "mae": 69.16,
+      "rmse": 89.1,
+      "smape_pct": 8.0,
+      "mape_nonzero_pct": 8.11,
+      "coverage_80_pct": 81.8
+    },
+    "residual_analysis": {
+      "mean_bias": 0.48,
+      "std": 89.09,
+      "skewness": 0.13,
+      "p90_abs_error": 145.66,
+      "max_abs_error": 322.49
+    },
+    "test_days": 512,
+    "top_errors": [
+      {
+        "fecha": "2024-12-31",
+        "real": 777,
+        "predicho": 1099,
+        "error_abs": 322
+      },
+      {
+        "fecha": "2024-11-11",
+        "real": 1310,
+        "predicho": 1016,
+        "error_abs": 293
+      },
+      {
+        "fecha": "2024-01-02",
+        "real": 1375,
+        "predicho": 1089,
+        "error_abs": 285
+      },
+      {
+        "fecha": "2024-04-24",
+        "real": 1101,
+        "predicho": 830,
+        "error_abs": 270
+      },
+      {
+        "fecha": "2024-11-26",
+        "real": 1256,
+        "predicho": 986,
+        "error_abs": 269
+      }
+    ],
+    "data_source": "real"
+  },
+  {
+    "service": "oacs",
+    "metrics": {
+      "mae": 36.52,
+      "rmse": 52.82,
+      "smape_pct": 40.37,
+      "mape_nonzero_pct": 6.6,
+      "coverage_80_pct": 91.0
+    },
+    "residual_analysis": {
+      "mean_bias": -8.52,
+      "std": 52.13,
+      "skewness": -0.885,
+      "p90_abs_error": 77.31,
+      "max_abs_error": 284.7
+    },
+    "test_days": 512,
+    "top_errors": [
+      {
+        "fecha": "2024-01-01",
+        "real": 0,
+        "predicho": 284,
+        "error_abs": 284
+      },
+      {
+        "fecha": "2024-12-26",
+        "real": 0,
+        "predicho": 239,
+        "error_abs": 239
+      },
+      {
+        "fecha": "2023-12-25",
+        "real": 0,
+        "predicho": 233,
+        "error_abs": 233
+      },
+      {
+        "fecha": "2023-12-26",
+        "real": 0,
+        "predicho": 233,
+        "error_abs": 233
+      },
+      {
+        "fecha": "2023-09-11",
+        "real": 0,
+        "predicho": 209,
+        "error_abs": 209
+      }
+    ],
+    "data_source": "synthetic"
+  },
+  {
+    "service": "metro",
+    "metrics": {
+      "mae": 46472.41,
+      "rmse": 57952.7,
+      "smape_pct": 4.5,
+      "mape_nonzero_pct": 4.53,
+      "coverage_80_pct": 80.3
+    },
+    "residual_analysis": {
+      "mean_bias": -873.63,
+      "std": 57946.12,
+      "skewness": -0.13,
+      "p90_abs_error": 91676.77,
+      "max_abs_error": 174534.9
+    },
+    "test_days": 512,
+    "top_errors": [
+      {
+        "fecha": "2024-03-22",
+        "real": 918027,
+        "predicho": 1092561,
+        "error_abs": 174534
+      },
+      {
+        "fecha": "2023-12-22",
+        "real": 927314,
+        "predicho": 1097127,
+        "error_abs": 169813
+      },
+      {
+        "fecha": "2024-08-24",
+        "real": 795569,
+        "predicho": 959863,
+        "error_abs": 164294
+      },
+      {
+        "fecha": "2024-03-30",
+        "real": 804431,
+        "predicho": 957728,
+        "error_abs": 153297
+      },
+      {
+        "fecha": "2024-01-08",
+        "real": 1026231,
+        "predicho": 1179388,
+        "error_abs": 153157
+      }
+    ],
+    "data_source": "synthetic"
+  },
+  {
+    "service": "bus",
+    "metrics": {
+      "mae": 42950.9,
+      "rmse": 53522.12,
+      "smape_pct": 5.32,
+      "mape_nonzero_pct": 5.34,
+      "coverage_80_pct": 81.2
+    },
+    "residual_analysis": {
+      "mean_bias": 317.84,
+      "std": 53521.18,
+      "skewness": 0.077,
+      "p90_abs_error": 85435.31,
+      "max_abs_error": 202798.06
+    },
+    "test_days": 512,
+    "top_errors": [
+      {
+        "fecha": "2024-01-15",
+        "real": 1100434,
+        "predicho": 897635,
+        "error_abs": 202798
+      },
+      {
+        "fecha": "2024-03-19",
+        "real": 1044255,
+        "predicho": 890831,
+        "error_abs": 153423
+      },
+      {
+        "fecha": "2024-12-19",
+        "real": 749362,
+        "predicho": 899390,
+        "error_abs": 150028
+      },
+      {
+        "fecha": "2024-09-01",
+        "real": 846732,
+        "predicho": 703970,
+        "error_abs": 142761
+      },
+      {
+        "fecha": "2024-11-17",
+        "real": 846320,
+        "predicho": 706385,
+        "error_abs": 139934
+      }
+    ],
+    "data_source": "synthetic"
+  },
+  {
+    "service": "rodalies",
+    "metrics": {
+      "mae": 16386.96,
+      "rmse": 20192.93,
+      "smape_pct": 8.51,
+      "mape_nonzero_pct": 8.59,
+      "coverage_80_pct": 77.7
+    },
+    "residual_analysis": {
+      "mean_bias": 137.63,
+      "std": 20192.46,
+      "skewness": 0.089,
+      "p90_abs_error": 32730.59,
+      "max_abs_error": 68248.28
+    },
+    "test_days": 512,
+    "top_errors": [
+      {
+        "fecha": "2024-02-29",
+        "real": 318852,
+        "predicho": 250603,
+        "error_abs": 68248
+      },
+      {
+        "fecha": "2023-10-26",
+        "real": 189717,
+        "predicho": 248986,
+        "error_abs": 59269
+      },
+      {
+        "fecha": "2024-12-22",
+        "real": 225420,
+        "predicho": 168574,
+        "error_abs": 56845
+      },
+      {
+        "fecha": "2023-08-22",
+        "real": 277829,
+        "predicho": 222199,
+        "error_abs": 55629
+      },
+      {
+        "fecha": "2023-08-26",
+        "real": 89757,
+        "predicho": 142637,
+        "error_abs": 52880
+      }
+    ],
+    "data_source": "synthetic"
+  }
+]
