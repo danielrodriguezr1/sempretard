@@ -42,57 +42,97 @@ class BicingService:
     async def get_map_stations(self) -> list[dict]:
         """Estaciones con coordenadas para el mapa."""
         try:
-            async with aiohttp.ClientSession() as session:
-                info_task = session.get(_STATION_INFO_URL, timeout=_TIMEOUT)
-                status_task = session.get(_STATION_STATUS_URL, timeout=_TIMEOUT)
-
-                async with info_task as info_resp:
-                    info_resp.raise_for_status()
-                    info_data = await info_resp.json(content_type=None)
-
-                async with status_task as status_resp:
-                    status_resp.raise_for_status()
-                    status_data = await status_resp.json(content_type=None)
-
-            info_stations = {
-                s["station_id"]: s
-                for s in info_data.get("data", {}).get("stations", [])
-            }
-            status_stations = status_data.get("data", {}).get("stations", [])
-
-            result = []
-            for s in status_stations:
-                sid = s.get("station_id")
-                info = info_stations.get(sid, {})
-                lat = info.get("lat")
-                lon = info.get("lon")
-                if lat is None or lon is None:
-                    continue
-
-                bikes = s.get("num_bikes_available", 0) or 0
-                docks = s.get("num_docks_available", 0) or 0
-                types = s.get("num_bikes_available_types", {})
-                mechanical = 0
-                electric = 0
-                if isinstance(types, dict):
-                    mechanical = types.get("mechanical", 0) or 0
-                    electric = types.get("ebike", 0) or 0
-
-                result.append({
-                    "id": sid,
-                    "name": info.get("name", f"Estació {sid}"),
-                    "lat": lat,
-                    "lon": lon,
-                    "bikes": bikes,
-                    "mechanical": mechanical,
-                    "electric": electric,
-                    "docks": docks,
-                    "status": s.get("status", "IN_SERVICE"),
-                })
-            return result
+            return await self._map_stations_gbfs()
         except Exception as exc:
-            logger.warning("Bicing map stations fallo: %s", exc)
-            return []
+            logger.warning("Bicing map GBFS fallo: %s, probando Citybik.es", exc)
+            try:
+                return await self._map_stations_citybikes()
+            except Exception as exc2:
+                logger.warning("Bicing map Citybik.es fallo: %s", exc2)
+                return []
+
+    async def _map_stations_gbfs(self) -> list[dict]:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(_STATION_INFO_URL, timeout=_TIMEOUT) as info_resp:
+                info_resp.raise_for_status()
+                info_data = await info_resp.json(content_type=None)
+
+            async with session.get(_STATION_STATUS_URL, timeout=_TIMEOUT) as status_resp:
+                status_resp.raise_for_status()
+                status_data = await status_resp.json(content_type=None)
+
+        info_stations = {
+            s["station_id"]: s
+            for s in info_data.get("data", {}).get("stations", [])
+        }
+        status_stations = status_data.get("data", {}).get("stations", [])
+
+        result = []
+        for s in status_stations:
+            sid = s.get("station_id")
+            info = info_stations.get(sid, {})
+            lat = info.get("lat")
+            lon = info.get("lon")
+            if lat is None or lon is None:
+                continue
+
+            bikes = s.get("num_bikes_available", 0) or 0
+            docks = s.get("num_docks_available", 0) or 0
+            types = s.get("num_bikes_available_types", {})
+            mechanical = 0
+            electric = 0
+            if isinstance(types, dict):
+                mechanical = types.get("mechanical", 0) or 0
+                electric = types.get("ebike", 0) or 0
+
+            result.append({
+                "id": sid,
+                "name": info.get("name", f"Estació {sid}"),
+                "lat": lat,
+                "lon": lon,
+                "bikes": bikes,
+                "mechanical": mechanical,
+                "electric": electric,
+                "docks": docks,
+                "status": s.get("status", "IN_SERVICE"),
+            })
+        if not result:
+            raise RuntimeError("GBFS no devolvió estaciones")
+        return result
+
+    async def _map_stations_citybikes(self) -> list[dict]:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(_CITYBIKES_URL, timeout=_TIMEOUT) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+
+        raw_stations = data.get("network", {}).get("stations", [])
+        if not raw_stations:
+            raise RuntimeError("Citybik.es sin estaciones")
+
+        result = []
+        for s in raw_stations:
+            lat = s.get("latitude")
+            lon = s.get("longitude")
+            if lat is None or lon is None:
+                continue
+            extra = s.get("extra", {})
+            mechanical = extra.get("normal_bikes", 0) or 0
+            electric = extra.get("ebikes", 0) or 0
+            bikes = s.get("free_bikes", 0) or 0
+
+            result.append({
+                "id": s.get("id", ""),
+                "name": s.get("name", ""),
+                "lat": lat,
+                "lon": lon,
+                "bikes": bikes,
+                "mechanical": mechanical,
+                "electric": electric,
+                "docks": s.get("empty_slots", 0) or 0,
+                "status": "IN_SERVICE",
+            })
+        return result
 
     async def get_realtime_status(self) -> dict:
         try:

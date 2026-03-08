@@ -203,6 +203,7 @@ class StatusService:
         sct_retenciones = sct.get("retenciones", 0)
         sct_cortadas = sct.get("carreteras_cortadas", 0)
         sct_roads = sct.get("carreteras_afectadas", [])
+        municipal_failed = not traffic.get("datos_reales", False)
 
         analisis = traffic.get("analisis", {})
         analisis["sct_retenciones"] = sct_retenciones
@@ -211,24 +212,31 @@ class StatusService:
         analisis["sct_total_incidencias"] = sct.get("total_incidencias", 0)
         traffic["analisis"] = analisis
 
-        if sct_cortadas > 0 or sct_retenciones >= 3:
-            penalty = sct_cortadas * 12 + sct_retenciones * 5
-            traffic["score"] = max(5, traffic.get("score", 50) - penalty)
-            if traffic["score"] < 30:
-                traffic["nivel"] = "critico"
-            elif traffic["score"] < 55:
-                traffic["nivel"] = "elevado"
+        if municipal_failed:
+            traffic["resumen"] = sct.get("resumen", traffic.get("resumen"))
+            traffic["score"] = sct.get("score", 50)
+            traffic["nivel"] = sct.get("nivel", "normal")
+            traffic["razones"] = sct.get("razones", [])
+            traffic["fuente"] = _t("sct.source")
+            traffic["datos_reales"] = True
+        else:
+            if sct_cortadas > 0 or sct_retenciones >= 3:
+                penalty = sct_cortadas * 12 + sct_retenciones * 5
+                traffic["score"] = max(5, traffic.get("score", 50) - penalty)
+                if traffic["score"] < 30:
+                    traffic["nivel"] = "critico"
+                elif traffic["score"] < 55:
+                    traffic["nivel"] = "elevado"
+            elif sct_retenciones > 0:
+                penalty = sct_retenciones * 4
+                traffic["score"] = max(15, traffic.get("score", 50) - penalty)
+                if traffic["score"] < 55 and traffic.get("nivel") == "normal":
+                    traffic["nivel"] = "elevado"
 
-        elif sct_retenciones > 0:
-            penalty = sct_retenciones * 4
-            traffic["score"] = max(15, traffic.get("score", 50) - penalty)
-            if traffic["score"] < 55 and traffic.get("nivel") == "normal":
-                traffic["nivel"] = "elevado"
-
-        sct_razones = sct.get("razones", [])
-        if sct_razones:
-            existing = traffic.get("razones", [])
-            traffic["razones"] = existing + sct_razones
+            sct_razones = sct.get("razones", [])
+            if sct_razones:
+                existing = traffic.get("razones", [])
+                traffic["razones"] = existing + sct_razones
 
         return traffic
 

@@ -45,7 +45,7 @@ function bicingRadius(station: BicingStation): number {
   return 6;
 }
 
-type Layer = "bicing" | "trafico" | "carreteras" | "all";
+type Layer = "bicing" | "trafico" | "all";
 
 interface Props {
   geo: GeoState;
@@ -60,7 +60,7 @@ function RecenterMap({ center, zoom }: { center: [number, number]; zoom: number 
 }
 
 export default function MapaView({ geo }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [data, setData] = useState<MapaResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [layer, setLayer] = useState<Layer>("all");
@@ -91,7 +91,7 @@ export default function MapaView({ geo }: Props) {
 
   const showBicing = layer === "all" || layer === "bicing";
   const showTrafico = layer === "all" || layer === "trafico";
-  const showSCT = layer === "all" || layer === "carreteras";
+  const showSCT = layer === "all" || layer === "trafico";
 
   const sctRetencions = (data.sct || []).filter((i) => i.severity === "retencio" || i.severity === "tallada").length;
 
@@ -107,12 +107,12 @@ export default function MapaView({ geo }: Props) {
         </button>
       )}
 
-      <div className="flex gap-1 mb-3 justify-center flex-wrap">
-        {(["all", "trafico", "carreteras", "bicing"] as Layer[]).map((l) => (
+      <div className="flex gap-1.5 mb-3 justify-center flex-wrap">
+        {(["all", "trafico", "bicing"] as Layer[]).map((l) => (
           <button
             key={l}
             onClick={() => setLayer(l)}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`px-4 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
               layer === l
                 ? "bg-[#8F7ACF] text-white shadow-sm"
                 : "bg-white/60 text-[#6B7280]"
@@ -121,10 +121,8 @@ export default function MapaView({ geo }: Props) {
             {l === "all"
               ? t("ui.map_all")
               : l === "trafico"
-                ? t("modo.coche")
-                : l === "carreteras"
-                  ? t("ui.map_highways")
-                  : "Bicing"}
+                ? t("ui.map_traffic_label")
+                : "Bicing"}
           </button>
         ))}
       </div>
@@ -154,11 +152,11 @@ export default function MapaView({ geo }: Props) {
           )}
 
           {showTrafico && data.trafico.vias_afectadas.map((via) => (
-            <TrafficMarker key={via.id} via={via} />
+            <TrafficMarker key={via.id} via={via} t={t} />
           ))}
 
           {showSCT && (data.sct || []).map((inc) => (
-            <SCTMarker key={inc.id} incident={inc} />
+            <SCTMarker key={inc.id} incident={inc} lang={lang} />
           ))}
 
           {showBicing && data.bicing.map((station) => (
@@ -218,7 +216,7 @@ function BicingMarker({ station }: { station: BicingStation }) {
   );
 }
 
-function TrafficMarker({ via }: { via: MapaVia }) {
+function TrafficMarker({ via, t }: { via: MapaVia; t: (k: string, p?: Record<string, string | number>) => string }) {
   const color = VIA_COLORS[via.estado] ?? "#6B7280";
   return (
     <CircleMarker
@@ -235,18 +233,71 @@ function TrafficMarker({ via }: { via: MapaVia }) {
         <div className="text-[12px] leading-relaxed min-w-[160px]">
           <p className="font-bold text-[#2E2E2E]">{via.via}</p>
           <p className="mt-1" style={{ color }}>
-            <strong>{via.estado}</strong>
+            <strong>{t(`severity.${via.estado}`)}</strong>
           </p>
-          <p className="text-[#6B7280]">Previsión: {via.prevision}</p>
+          <p className="text-[#6B7280]">{t("ui.prediction_15min")}: {via.prevision}</p>
         </div>
       </Popup>
     </CircleMarker>
   );
 }
 
-function SCTMarker({ incident }: { incident: SCTIncident }) {
+const SCT_TRANSLATIONS: Record<string, Record<string, string>> = {
+  es: {
+    "Circulació amb retencions": "Circulación con retenciones",
+    "Circulació intensa": "Circulación intensa",
+    "Calçada tallada": "Calzada cortada",
+    "Calçada restringida": "Calzada restringida",
+    "Calçada restringida. Desviaments": "Calzada restringida. Desvíos",
+    "Calçada tallada. Desviaments": "Calzada cortada. Desvíos",
+    "Retenció": "Retención",
+    "Obres": "Obras",
+    "Cons": "Aviso",
+    "Circulació": "Circulación",
+    "Reforçament de ferm": "Refuerzo de firme",
+    "Reasfaltat": "Reasfaltado",
+    "Neteja": "Limpieza",
+    "Esllavissada": "Desprendimiento",
+    "Avaria": "Avería",
+    "Retirada de vehicle": "Retirada de vehículo",
+    "Treballs de manteniment": "Trabajos de mantenimiento",
+    "Treballs de jardineria": "Trabajos de jardinería",
+    "Treballs d'enllumenat": "Trabajos de alumbrado",
+    "Millora de traçat": "Mejora de trazado",
+    "Millora de senyalització": "Mejora de señalización",
+    "Senyalització horitzontal": "Señalización horizontal",
+    "Construcció de rotonda": "Construcción de rotonda",
+    "Estabilització de talús": "Estabilización de talud",
+    "Ampliació calçada": "Ampliación de calzada",
+    "Carril BICI": "Carril bici",
+    "Carril BUS": "Carril bus",
+    "Despreniments": "Desprendimientos",
+    "Inundacions": "Inundaciones",
+    "Obres en general": "Obras en general",
+    "Manteniment de ponts": "Mantenimiento de puentes",
+    "Sondejos": "Sondeos",
+    "Reparació de ferm": "Reparación de firme",
+    "Cancel·lació carril ràpid": "Cancelación carril rápido",
+    "Canalització de fibra": "Canalización de fibra",
+    "Instal·lació d'espires": "Instalación de espiras",
+    "Ampliació al tercer carril": "Ampliación al tercer carril",
+    "Reparació de juntes de dilatació": "Reparación de juntas de dilatación",
+    "Reparació de barrera de seguretat": "Reparación de barrera de seguridad",
+  },
+};
+
+function translateSCT(text: string, lang: string): string {
+  if (lang === "ca") return text;
+  const dict = SCT_TRANSLATIONS[lang] ?? SCT_TRANSLATIONS["es"];
+  return dict[text] ?? text;
+}
+
+function SCTMarker({ incident, lang }: { incident: SCTIncident; lang: string }) {
   const color = SCT_COLORS[incident.severity] ?? "#9CA3AF";
   const radius = incident.severity === "tallada" ? 10 : incident.severity === "retencio" ? 8 : 5;
+  const desc = translateSCT(incident.descripcion || incident.causa, lang);
+  const tipo = translateSCT(incident.tipo, lang);
+  const causa = translateSCT(incident.causa, lang);
   return (
     <CircleMarker
       center={[incident.lat, incident.lon]}
@@ -262,12 +313,15 @@ function SCTMarker({ incident }: { incident: SCTIncident }) {
         <div className="text-[12px] leading-relaxed min-w-[180px]">
           <p className="font-bold text-[#2E2E2E]">{incident.carretera}</p>
           <p className="mt-1" style={{ color }}>
-            <strong>{incident.descripcion || incident.causa}</strong>
+            <strong>{desc}</strong>
           </p>
+          {causa !== desc && (
+            <p className="text-[#6B7280]">{causa}</p>
+          )}
           {incident.hacia && (
             <p className="text-[#6B7280]">→ {incident.hacia}</p>
           )}
-          <p className="text-[#9CA3AF] text-[10px] mt-1">SCT · {incident.tipo}</p>
+          <p className="text-[#9CA3AF] text-[10px] mt-1">SCT · {tipo}</p>
         </div>
       </Popup>
     </CircleMarker>

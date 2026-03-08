@@ -22,6 +22,10 @@ _BCN_CKAN_URL = (
     "https://opendata-ajuntament.barcelona.cat"
     "/data/api/3/action/datastore_search"
 )
+_BCN_CKAN_SQL_URL = (
+    "https://opendata-ajuntament.barcelona.cat"
+    "/data/api/3/action/datastore_search_sql"
+)
 _BCN_RESOURCE_ID = "877ccf66-9106-4ae2-be51-95a9f6469e4c"
 _BCN_FETCH_LIMIT = 1000
 _BCN_TIMEOUT = 20
@@ -125,6 +129,17 @@ _MEDIUM_KW = [
 ]
 _MEDIUM_WORD_BOUNDARY = ["teatre", "fira"]
 
+_PERMANENT_KW = [
+    "exposició", "exposicion", "exposición", "exhibition",
+    "il·luminació", "iluminació", "iluminacion",
+    "casal d'estiu", "casal d'hivern",
+    "cicle ", "taller ", "curs ", "curso ",
+    "visita guiada", "itinerari", "ruta ",
+    "concurs", "concurso",
+    "espai per a vianants",
+    "experiència", "experiencia",
+]
+
 _TIER_ORDER = {"masivo": 0, "grande": 1, "mediano": 2, "pequeno": 3}
 _BARCA_LINES = ["L3 (Les Corts/Palau Reial)", "L5 (Collblanc)"]
 
@@ -204,6 +219,32 @@ class EventService:
     # ------------------------------------------------------------------
 
     async def _fetch_bcn_events(self, start: date, end: date) -> list[dict]:
+        sql = (
+            f'SELECT * FROM "{_BCN_RESOURCE_ID}" '
+            f"WHERE \"end_date\" >= '{start.isoformat()}' "
+            f"AND \"start_date\" <= '{end.isoformat()}' "
+            f'ORDER BY "start_date" DESC LIMIT {_BCN_FETCH_LIMIT}'
+        )
+        try:
+            async with httpx.AsyncClient(timeout=_BCN_TIMEOUT) as client:
+                resp = await client.get(_BCN_CKAN_SQL_URL, params={"sql": sql})
+                resp.raise_for_status()
+                data = resp.json()
+        except Exception as exc:
+            logger.warning("Open Data BCN SQL fallo: %s, probando fallback", exc)
+            return await self._fetch_bcn_events_fallback(start, end)
+
+        records = data.get("result", {}).get("records", [])
+        logger.info("Open Data BCN: %d eventos encontrados para %s — %s", len(records), start, end)
+        events: list[dict] = []
+        for rec in records:
+            parsed = self._parse_bcn_record(rec, start, end)
+            if parsed is not None:
+                events.append(parsed)
+        return events
+
+    async def _fetch_bcn_events_fallback(self, start: date, end: date) -> list[dict]:
+        """Fallback: fetch without SQL if the SQL endpoint fails."""
         params = {"resource_id": _BCN_RESOURCE_ID, "limit": _BCN_FETCH_LIMIT}
         try:
             async with httpx.AsyncClient(timeout=_BCN_TIMEOUT) as client:
@@ -211,7 +252,7 @@ class EventService:
                 resp.raise_for_status()
                 data = resp.json()
         except Exception as exc:
-            logger.warning("Open Data BCN fallo: %s", exc)
+            logger.warning("Open Data BCN fallback fallo: %s", exc)
             return []
 
         records = data.get("result", {}).get("records", [])
@@ -241,6 +282,15 @@ class EventService:
             e = s
 
         if e < start or s > end:
+            return None
+
+        duration_days = (e - s).days
+        name_lower = name.lower()
+
+        is_permanent = any(kw in name_lower for kw in _PERMANENT_KW)
+        if is_permanent and duration_days > 7:
+            return None
+        if duration_days > 14:
             return None
 
         address = rec.get("addresses_road_name", "") or ""
@@ -296,15 +346,31 @@ class EventService:
 # Classification (pure functions)
 # ══════════════════════════════════════════════════════════════════════
 
+_NON_IMPACT_PREFIX = [
+    "exposició", "exposicion", "exposición",
+    "cicle ", "taller ", "curs ", "curso ",
+    "visita ", "itinerari", "ruta ",
+    "sortida ", "concurs", "concurso",
+    "espectacle", "espectáculo",
+    "obra ", "lectura ",
+]
+
+
 def classify_event(name: str, address: str = "") -> dict:
     """Clasifica un evento por tier de impacto y detecta venue."""
     name_lower = name.lower()
     combined = name_lower + " " + address.lower()
 
+    is_non_impact = any(name_lower.startswith(p) or f" {p}" in name_lower for p in _NON_IMPACT_PREFIX)
+
     tier = _classify_tier(name_lower)
+
+    if is_non_impact and tier in ("masivo", "grande"):
+        tier = "mediano"
+
     lineas, venue = _detect_venue(combined)
 
-    if venue:
+    if venue and not is_non_impact:
         venue_cap = _VENUE_TRANSPORT[venue]["capacidad"]
         if venue_cap == "masivo" and tier in ("pequeno", "mediano"):
             tier = "grande"

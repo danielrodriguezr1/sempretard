@@ -32,8 +32,13 @@ export interface ModoStatus {
     lineas_total?: number;
     lineas_ok?: number;
     lineas_afectadas?: string[];
-    detalle?: Array<{ linea: string; causa: string }>;
-    todas_lineas?: Array<{ linea: string; color: string; estado: string; causa?: string }>;
+    detalle?: Array<{ linea: string; causa: string | Record<string, string> }>;
+    todas_lineas?: Array<{ linea: string; color: string; estado: string; causa?: string | Record<string, string>; recorrido?: string }>;
+    // SCT (carreteras metropolitanas)
+    sct_retenciones?: number;
+    sct_cortadas?: number;
+    sct_carreteras_afectadas?: string[];
+    sct_total_incidencias?: number;
     // Bicing
     estaciones_total?: number;
     estaciones_activas?: number;
